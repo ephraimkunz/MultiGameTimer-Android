@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.example.ephraimkunz.multigametimer.Fragments.JoinGameFragment;
+import com.example.ephraimkunz.multigametimer.GamePeripheral;
 import com.example.ephraimkunz.multigametimer.R;
 import com.example.ephraimkunz.multigametimer.Fragments.WaitFragment;
 
@@ -30,6 +31,7 @@ public class JoinGameActivity extends AppCompatActivity implements JoinGameFragm
         }
 
         // Start advertising services and characteristics
+        GamePeripheral.sharedInstance().advertiseForGameId(gameId, this);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         WaitFragment fragment = WaitFragment.newInstance();

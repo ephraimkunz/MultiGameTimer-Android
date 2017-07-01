@@ -5,4 +5,16 @@ package com.example.ephraimkunz.multigametimer;
  */
 
 public class GameCentral {
+    private static GameCentral instance;
+
+    private GameCentral() {
+
+    }
+
+    public static GameCentral sharedInstance() {
+        if (instance == null) {
+            instance = new GameCentral();
+        }
+        return instance;
+    }
 }

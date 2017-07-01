@@ -11,5 +11,9 @@ public class CreateGameActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_game);
+
+        // Start bluetooth central
+
+
     }
 }

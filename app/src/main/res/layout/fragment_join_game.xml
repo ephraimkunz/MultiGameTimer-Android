@@ -17,6 +17,6 @@
         android:layout_centerHorizontal="true"
         android:layout_below="@id/joinGameEditText"
         android:id="@+id/joinGameButtonWithGameId"
-        android:clickable="false"
+        android:enabled="false"
         android:text="Join"/>
 </RelativeLayout>

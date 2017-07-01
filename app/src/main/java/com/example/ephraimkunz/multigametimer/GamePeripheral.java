@@ -1,8 +1,152 @@
 package com.example.ephraimkunz.multigametimer;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattServer;
+import android.bluetooth.BluetoothGattServerCallback;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.BluetoothLeAdvertiser;
+import android.content.Context;
+import android.os.ParcelUuid;
+import android.util.Log;
+
+import java.util.UUID;
+
 /**
  * Created by ephraimkunz on 7/1/17.
  */
 
 public class GamePeripheral {
+    private static GamePeripheral instance;
+    private String gameId;
+
+    private GamePeripheral() {
+
+    }
+
+    public static GamePeripheral sharedInstance() {
+        if (instance == null) {
+            instance = new GamePeripheral();
+        }
+        return instance;
+    }
+
+    public void advertiseForGameId(String gameId, Context context) {
+        this.gameId = gameId;
+        UUID gameUuid = Constants.uuidFromGameId(gameId);
+        createGattServer(gameUuid, context);
+        createAdvertisement(gameUuid);
+    }
+
+    private void createAdvertisement(UUID gameUuid) {
+        // Create advertisement data
+        BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
+        AdvertiseSettings settings = new AdvertiseSettings.Builder()
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+                .setConnectable(true)
+                .build();
+        AdvertiseData data = new AdvertiseData.Builder()
+                .setIncludeDeviceName(true)
+                .addServiceUuid(new ParcelUuid(gameUuid))
+                .build();
+        AdvertiseCallback callback = new AdvertiseCallback() {
+            @Override
+            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+                super.onStartSuccess(settingsInEffect);
+                Log.i( "BLE", "Advertising onStartSuccess");
+            }
+
+            @Override
+            public void onStartFailure(int errorCode) {
+                super.onStartFailure(errorCode);
+                Log.e( "BLE", "Advertising onStartFailure: " + errorCode );
+            }
+        };
+
+        advertiser.startAdvertising(settings, data, callback);
+    }
+
+    private void createGattServer(UUID gameUuid, Context context) {
+        // Create GATT service: https://stackoverflow.com/questions/37181843/android-using-bluetoothgattserver
+        BluetoothGattServerCallback serverCallback = new BluetoothGattServerCallback() {
+            @Override
+            public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
+                super.onConnectionStateChange(device, status, newState);
+            }
+
+            @Override
+            public void onServiceAdded(int status, BluetoothGattService service) {
+                super.onServiceAdded(status, service);
+            }
+
+            @Override
+            public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
+                super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
+            }
+
+            @Override
+            public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
+                super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite, responseNeeded, offset, value);
+            }
+
+            @Override
+            public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattDescriptor descriptor) {
+                super.onDescriptorReadRequest(device, requestId, offset, descriptor);
+            }
+
+            @Override
+            public void onDescriptorWriteRequest(BluetoothDevice device, int requestId, BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
+                super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded, offset, value);
+            }
+
+            @Override
+            public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
+                super.onExecuteWrite(device, requestId, execute);
+            }
+
+            @Override
+            public void onNotificationSent(BluetoothDevice device, int status) {
+                super.onNotificationSent(device, status);
+            }
+
+            @Override
+            public void onMtuChanged(BluetoothDevice device, int mtu) {
+                super.onMtuChanged(device, mtu);
+            }
+        };
+
+        BluetoothGattService service = new BluetoothGattService(gameUuid, BluetoothGattService.SERVICE_TYPE_PRIMARY);
+        BluetoothGattCharacteristic startPlayChar = new BluetoothGattCharacteristic(
+                Constants.StartPlayCharacteristic,
+                BluetoothGattCharacteristic.PROPERTY_WRITE,
+                BluetoothGattCharacteristic.PERMISSION_WRITE);
+        BluetoothGattCharacteristic isPlayerTurnChar = new BluetoothGattCharacteristic(
+                Constants.IsPlayerTurnCharacteristic,
+                BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
+        BluetoothGattCharacteristic isPausedChar = new BluetoothGattCharacteristic(
+                Constants.IsPausedCharacteristic,
+                BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
+        BluetoothGattCharacteristic isTimeExpiredChar = new BluetoothGattCharacteristic(
+                Constants.IsPlayerTimeExpiredCharacteristic,
+                BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ);
+
+        service.addCharacteristic(startPlayChar);
+        service.addCharacteristic(isPlayerTurnChar);
+        service.addCharacteristic(isPausedChar);
+        service.addCharacteristic(isTimeExpiredChar);
+
+        BluetoothManager manager = (BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothGattServer server = manager.openGattServer(context, serverCallback);
+        server.addService(service);
+    }
 }

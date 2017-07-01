@@ -73,7 +73,7 @@ public class JoinGameFragment extends Fragment {
                 if (s.length() == 3) {
                     joinGame.setEnabled(true);
                 } else {
-                    joinGame.setClickable(false);
+                    joinGame.setEnabled(false);
                 }
             }
 
