@@ -2,6 +2,7 @@ package com.example.ephraimkunz.multigametimer;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServer;
@@ -16,6 +17,7 @@ import android.content.Context;
 import android.os.ParcelUuid;
 import android.util.Log;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class GamePeripheral {
     private static GamePeripheral instance;
     private String gameId;
+    private BluetoothGattServer mGattServer;
 
     private GamePeripheral() {
 
@@ -53,7 +56,6 @@ public class GamePeripheral {
                 .setConnectable(true)
                 .build();
         AdvertiseData data = new AdvertiseData.Builder()
-                .setIncludeDeviceName(true)
                 .addServiceUuid(new ParcelUuid(gameUuid))
                 .build();
         AdvertiseCallback callback = new AdvertiseCallback() {
@@ -89,6 +91,9 @@ public class GamePeripheral {
             @Override
             public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
                 super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
+                if (characteristic.getUuid().equals(Constants.PlayerNameCharacteristic)) {
+                    mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, BluetoothAdapter.getDefaultAdapter().getName().getBytes(StandardCharsets.US_ASCII));
+                }
             }
 
             @Override
@@ -139,14 +144,19 @@ public class GamePeripheral {
                 Constants.IsPlayerTimeExpiredCharacteristic,
                 BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_READ);
+        BluetoothGattCharacteristic playerName = new BluetoothGattCharacteristic(
+                Constants.PlayerNameCharacteristic,
+                BluetoothGattCharacteristic.PROPERTY_READ,
+                BluetoothGattCharacteristic.PERMISSION_READ);
 
         service.addCharacteristic(startPlayChar);
         service.addCharacteristic(isPlayerTurnChar);
         service.addCharacteristic(isPausedChar);
         service.addCharacteristic(isTimeExpiredChar);
+        service.addCharacteristic(playerName);
 
         BluetoothManager manager = (BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothGattServer server = manager.openGattServer(context, serverCallback);
-        server.addService(service);
+        mGattServer = manager.openGattServer(context, serverCallback);
+        mGattServer.addService(service);
     }
 }
