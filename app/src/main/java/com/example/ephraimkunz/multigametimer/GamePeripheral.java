@@ -32,6 +32,7 @@ public class GamePeripheral {
     private BluetoothLeAdvertiser advertiser;
     private AdvertiseCallback advertiseCallback;
     private GameSetupPeripheralDelegate gameSetupDelegate;
+    private GamePlayPeripheralDelegate gamePlayDelegate;
 
     private GamePeripheral() {
 
@@ -53,6 +54,10 @@ public class GamePeripheral {
 
     public void setGameSetupDelegate(GameSetupPeripheralDelegate delegate) {
         gameSetupDelegate = delegate;
+    }
+
+    public void setGamePlayDelegate(GamePlayPeripheralDelegate delegate) {
+        gamePlayDelegate = delegate;
     }
 
     private void createAdvertisement(UUID gameUuid) {

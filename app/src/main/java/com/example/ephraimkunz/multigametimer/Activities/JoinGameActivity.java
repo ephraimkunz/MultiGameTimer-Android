@@ -47,8 +47,11 @@ public class JoinGameActivity extends AppCompatActivity implements JoinGameFragm
     // GameSetupPeripheralDelegate
     @Override
     public void gameDidStart(int start, int increment) {
-
         Intent intent = new Intent(this, PlayGameActivity.class);
+        intent.putExtra(PlayGameActivity.START_TIME, start);
+        intent.putExtra(PlayGameActivity.INCREMENT, increment);
+        intent.putExtra(PlayGameActivity.IS_CENTRAL, false);
+
         startActivity(intent);
     }
 }
