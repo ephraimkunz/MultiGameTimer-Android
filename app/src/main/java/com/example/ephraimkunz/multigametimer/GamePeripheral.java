@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
@@ -81,6 +82,15 @@ public class GamePeripheral {
             @Override
             public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
                 super.onConnectionStateChange(device, status, newState);
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    Log.i("BLE", "State connected");
+                } else if (newState == BluetoothProfile.STATE_CONNECTING) {
+                    Log.i("BLE", "State connecting");
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    Log.i("BLE", "State disconnected");
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTING) {
+                    Log.i("BLE", "State disconnecting");
+                }
             }
 
             @Override
