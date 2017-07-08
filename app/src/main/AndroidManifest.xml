@@ -5,7 +5,9 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- For Android 6 -->
-    <uses-feature android:name="android.hardware.bluetooth_le"  android:required="true" />
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -23,11 +25,11 @@
         </activity>
         <activity
             android:name=".Activities.CreateGameActivity"
-            android:parentActivityName=".Activities.MainActivity"/>
+            android:parentActivityName=".Activities.MainActivity" />
         <activity
             android:name=".Activities.JoinGameActivity"
-            android:parentActivityName=".Activities.MainActivity"
-            ></activity>
+            android:parentActivityName=".Activities.MainActivity" />
+        <activity android:name=".Activities.PlayGameActivity"></activity>
     </application>
 
 </manifest>

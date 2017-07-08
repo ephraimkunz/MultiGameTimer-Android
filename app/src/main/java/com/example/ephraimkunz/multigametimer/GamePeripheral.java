@@ -29,6 +29,9 @@ public class GamePeripheral {
     private static GamePeripheral instance;
     private String gameId;
     private BluetoothGattServer mGattServer;
+    private BluetoothLeAdvertiser advertiser;
+    private AdvertiseCallback advertiseCallback;
+    private GameSetupPeripheralDelegate gameSetupDelegate;
 
     private GamePeripheral() {
 
@@ -48,18 +51,22 @@ public class GamePeripheral {
         createAdvertisement(gameUuid);
     }
 
+    public void setGameSetupDelegate(GameSetupPeripheralDelegate delegate) {
+        gameSetupDelegate = delegate;
+    }
+
     private void createAdvertisement(UUID gameUuid) {
         // Create advertisement data
-        BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
+        advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
-                .setConnectable(true)
+                //.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+               // .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+               // .setConnectable(true)
                 .build();
         AdvertiseData data = new AdvertiseData.Builder()
                 .addServiceUuid(new ParcelUuid(gameUuid))
                 .build();
-        AdvertiseCallback callback = new AdvertiseCallback() {
+        advertiseCallback = new AdvertiseCallback() {
             @Override
             public void onStartSuccess(AdvertiseSettings settingsInEffect) {
                 super.onStartSuccess(settingsInEffect);
@@ -73,7 +80,7 @@ public class GamePeripheral {
             }
         };
 
-        advertiser.startAdvertising(settings, data, callback);
+        advertiser.startAdvertising(settings, data, advertiseCallback);
     }
 
     private void createGattServer(UUID gameUuid, Context context) {
@@ -109,6 +116,15 @@ public class GamePeripheral {
             @Override
             public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
                 super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite, responseNeeded, offset, value);
+                if(characteristic.getUuid().toString().equals(Constants.StartPlayCharacteristic.toString())) {
+                    String rawString = new String(value, StandardCharsets.US_ASCII);
+                    String[] splitted = rawString.split(":");
+                    if(gameSetupDelegate != null) {
+                        gameSetupDelegate.gameDidStart(Integer.parseInt(splitted[0]), Integer.parseInt(splitted[1]));
+                    }
+                }
+
+                advertiser.stopAdvertising(advertiseCallback);
             }
 
             @Override
