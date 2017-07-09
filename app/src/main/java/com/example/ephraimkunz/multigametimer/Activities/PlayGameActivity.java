@@ -3,10 +3,12 @@ package com.example.ephraimkunz.multigametimer.Activities;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 
 import com.example.ephraimkunz.multigametimer.GamePeripheral;
 import com.example.ephraimkunz.multigametimer.GamePlayPeripheralDelegate;
+import com.example.ephraimkunz.multigametimer.GameTimer;
 import com.example.ephraimkunz.multigametimer.R;
 
 public class PlayGameActivity extends AppCompatActivity implements GamePlayPeripheralDelegate {
@@ -15,6 +17,7 @@ public class PlayGameActivity extends AppCompatActivity implements GamePlayPerip
     public final static String IS_CENTRAL = "IsCentral";
 
     private Button countdownButton;
+    private GameTimer timer;
     private int startTime;
     private int increment;
     private boolean isCentral; // Denotes whether this instance is a master or central
@@ -30,7 +33,7 @@ public class PlayGameActivity extends AppCompatActivity implements GamePlayPerip
         isCentral = intent.getExtras().getBoolean(IS_CENTRAL);
 
         countdownButton = (Button) findViewById(R.id.countdownButton);
-        countdownButton.setEnabled(false);
+        countdownButton.setEnabled(true);
         countdownButton.setText(formatButtonText(startTime));
 
         if(isCentral) {
@@ -38,6 +41,30 @@ public class PlayGameActivity extends AppCompatActivity implements GamePlayPerip
         } else {
             GamePeripheral.sharedInstance().setGamePlayDelegate(this);
         }
+
+        timer = new GameTimer(startTime * 1000, 1 * 1000, increment * 1000) {
+            @Override
+            public void onFinish() {
+
+            }
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                countdownButton.setText(formatButtonText((int)(millisUntilFinished / 1000)));
+
+            }
+        };
+
+        countdownButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(timer.isPaused()) {
+                    timer.start();
+                } else {
+                    timer.pause();
+                }
+            }
+        });
     }
 
     private String formatButtonText(int timeInSec) {
