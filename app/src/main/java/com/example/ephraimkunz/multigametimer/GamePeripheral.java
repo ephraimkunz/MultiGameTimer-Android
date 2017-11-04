@@ -14,6 +14,7 @@ import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.os.ParcelUuid;
 import android.util.Log;
@@ -62,6 +63,7 @@ public class GamePeripheral {
 
     private void createAdvertisement(UUID gameUuid) {
         // Create advertisement data
+        boolean mae = BluetoothAdapter.getDefaultAdapter().isMultipleAdvertisementSupported();
         advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
                 //.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
@@ -127,6 +129,7 @@ public class GamePeripheral {
                     if(gameSetupDelegate != null) {
                         gameSetupDelegate.gameDidStart(Integer.parseInt(splitted[0]), Integer.parseInt(splitted[1]));
                     }
+                    mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
                 }
 
                 advertiser.stopAdvertising(advertiseCallback);
